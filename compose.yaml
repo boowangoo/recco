@@ -1,0 +1,14 @@
+services:
+  recco-server:
+    image: recco-server
+    container_name: recco-server
+    volumes:
+      - ./recco-server:/recco-server
+    ports:
+      - "8080:8080"
+    build:
+      dockerfile: recco-server.Dockerfile
+      tags:
+        - "recco-server"
+    tty: true
+      

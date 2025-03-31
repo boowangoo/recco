@@ -32,7 +32,6 @@ func GoogleQueryHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "Request Failed")
         return
     } 
-    // fmt.Fprintf(w, resp)
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusOK {

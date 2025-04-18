@@ -11,4 +11,11 @@ services:
       tags:
         - "recco-server"
     tty: true
+  recco-db:
+    image: qdrant/qdrant:v1.13.6
+    container_name: recco-db
+    ports:
+      - "6333:6333"
+    tty: true
+
       

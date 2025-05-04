@@ -11,11 +11,34 @@ services:
       tags:
         - "recco-server"
     tty: true
+
+  recco-embed:
+    image: recco-embed
+    container_name: recco-embed
+    volumes:
+      - ./recco-embed:/recco-embed
+    ports:
+      - "8081:80"
+    build:
+      dockerfile: recco-embed.Dockerfile
+      tags:
+        - "recco-embed"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+    tty: true
+
   recco-db:
     image: qdrant/qdrant:v1.13.6
     container_name: recco-db
+    environment:
+      - RUN_MODE=development
+    volumes:
+      - ./recco-db/qdrant/config:/qdrant/config
+      - ./recco-db/qdrant/storage-development:/qdrant/storage
     ports:
       - "6333:6333"
-    tty: true
-
-      
+    tty: true      

@@ -11,9 +11,6 @@ import (
 func main() {
 	fmt.Println("Starting server")
 
-    // check if database is running and data is loaded
-    CheckDB()
-
     http.HandleFunc("/", HelloServer)
     http.HandleFunc("/google-query", GoogleQueryHandler)
     http.HandleFunc("/qdrant-collection-exists", QdrantCollectionExitsHandler)
@@ -85,8 +82,8 @@ func QdrantCollectionExitsHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     if !result.Result.Exists {
-        fmt.Fprintf(w, "The collection %s does not exist", collection)
+        fmt.Fprintf(w, "The collection `%s` does not exist", collection)
     } else {
-        fmt.Fprintf(w, "The collection %s exist", collection)
+        fmt.Fprintf(w, "The collection `%s` exists", collection)
     }
 }

@@ -3,7 +3,7 @@ services:
     image: recco-server
     container_name: recco-server
     volumes:
-      - ./recco-server:/recco-server
+      - ./recco-server/code:/recco-server
     ports:
       - "8080:8080"
     build:
@@ -11,4 +11,35 @@ services:
       tags:
         - "recco-server"
     tty: true
-      
+
+  recco-embed:
+    image: recco-embed
+    container_name: recco-embed
+    volumes:
+      - ./recco-embed:/recco-embed
+    ports:
+      - "8081:80"
+    build:
+      dockerfile: recco-embed.Dockerfile
+      tags:
+        - "recco-embed"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+    tty: true
+
+  recco-db:
+    image: recco-db
+    container_name: recco-db
+    environment:
+      - RUN_MODE=development
+    volumes:
+      - ./recco-db/dev-data/dev-config:/qdrant/config
+      # If missing, get data by runing start.sh -d
+      - ./recco-db/dev-data/dev-storage:/qdrant/storage
+    ports:
+      - "6333:6333"
+    tty: true      

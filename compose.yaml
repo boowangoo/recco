@@ -3,7 +3,7 @@ services:
     image: recco-server
     container_name: recco-server
     volumes:
-      - ./recco-server:/recco-server
+      - ./recco-server/code:/recco-server
     ports:
       - "8080:8080"
     build:
@@ -32,13 +32,14 @@ services:
     tty: true
 
   recco-db:
-    image: qdrant/qdrant:v1.13.6
+    image: recco-db
     container_name: recco-db
     environment:
       - RUN_MODE=development
     volumes:
-      - ./recco-db/qdrant/config:/qdrant/config
-      - ./recco-db/qdrant/storage-development:/qdrant/storage
+      - ./recco-db/dev-data/dev-config:/qdrant/config
+      # If missing, get data by runing start.sh -d
+      - ./recco-db/dev-data/dev-storage:/qdrant/storage
     ports:
       - "6333:6333"
     tty: true      

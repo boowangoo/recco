@@ -1,9 +1,18 @@
-docker-compose up --build -d
+#!/bin/bash
 
-# # Start recco-dataloader to initialize the recco-db
-# # TODO: Move recco-db data files to cloud storage
-# if [[ "$@" == *"-d"* ]]; then
-#     echo "Starting recco-dataloader container"
-#     cd recco-dataloader/ && docker-compose up --build -d
-#     cd ..
-# fi
+# Download text embedding model for recco-embed
+if [[ "$@" == *"--download-embed"* ]]; then
+    pushd ./recco-embed/data
+    # Requires git-lfs to be installed
+    git clone https://huggingface.co/BAAI/bge-large-en-v1.5
+    popd
+fi
+
+docker compose up --build -d
+
+# Load dataset into recco-db
+if [[ "$@" == *"--download-db"* ]]; then
+    pushd ./recco-db
+    python db_load.py
+    popd
+fi

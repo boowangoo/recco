@@ -1,4 +1,18 @@
 services:
+  recco-web:
+    image: recco-web
+    build:
+      context: ./recco-web/
+      dockerfile: recco-web.Dockerfile
+    container_name: recco-web
+    volumes:
+      - ./recco-web/nginx/nginx.conf:/etc/nginx/conf.d/recco-web.conf
+      - ./recco-web/nginx/html:/usr/share/nginx/html
+      - ./recco-web/nginx/logs:/var/log/nginx
+    ports:
+      - "8080:80"
+    tty: true
+
   recco-server:
     image: recco-server
     build:
@@ -8,7 +22,7 @@ services:
     volumes:
       - ./recco-server/code:/recco-server
     ports:
-      - "8080:8080"
+      - "8081:80"
     tty: true
 
   recco-embed:
@@ -18,9 +32,10 @@ services:
       dockerfile: recco-embed.Dockerfile
     container_name: recco-embed
     volumes:
-      - ./recco-embed:/recco-embed
+      # If missing, load data by running start.sh -d
+      - ./recco-embed/data:/data
     ports:
-      - "8081:80"
+      - "8082:80"
     deploy:
       resources:
         reservations:

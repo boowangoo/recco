@@ -6,4 +6,4 @@ FROM qdrant/qdrant:v1.13.6
 VOLUME /qdrant/storage
 VOLUME /qdrant/config
 
-# EXPOSE 6333
+EXPOSE 6333

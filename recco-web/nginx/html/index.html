@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>recco</title>
+</head>
+<body>
+    <input type="text" id="textbox" placeholder="Search for a movie..." />
+    <ul id="results"></ul>
+    <script>
+        document.getElementById('textbox').addEventListener('input', function() {
+            const resultsList = document.getElementById('results');
+            const query = this.value.trim();
+
+            if (query.length > 0) {
+                // Send a request to search for the movie title name
+                url = `/search?q=${encodeURIComponent(query)}`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsList.innerHTML = '';
+                        for (const movie_title of data) {
+                            const li = document.createElement('li');
+                            li.textContent = movie_title;
+                            resultsList.appendChild(li);
+                        }
+                    })
+                    .catch(error => {
+                        resultsList.innerHTML = '';
+                        console.error('Error searching results:', error);
+                    });
+            } else {
+                resultsList.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>

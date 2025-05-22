@@ -8,7 +8,7 @@ if [[ "$@" == *"--download-embed"* ]]; then
     popd
 fi
 
-docker compose up --build -d
+docker compose --env-file ./recco.env up --build -d
 
 # Load dataset into recco-db
 if [[ "$@" == *"--download-db"* ]]; then

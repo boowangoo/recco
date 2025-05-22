@@ -4,25 +4,16 @@ import (
     "fmt"
     "net/http"
     "log"
-    "io"
     "encoding/json"
     "bytes"
+    "os"
 )
 
-func main() {
-	fmt.Println("Starting server")
-
-    http.HandleFunc("/", HelloServer)
-    http.HandleFunc("/google-query", GoogleQueryHandler)
-    http.HandleFunc("/qdrant-collection-exists", QdrantCollectionExistsHandler)
-    http.HandleFunc("/search", SearchMovieHandler)
-    listen_err := http.ListenAndServe(":80", nil)
-    if listen_err != nil {
-        fmt.Println("listen err", listen_err)
-    }
-	fmt.Println("Server stopped")
+type ReccoHost struct {
+    ip          string
+    embed_port  string
+    db_port     string
 }
-
 
 type QdrantCollectionExistsResponse struct {
     Result struct {
@@ -68,56 +59,8 @@ func CheckMarshalJson(data []byte, err error, w http.ResponseWriter) bool {
     return err == nil 
 }
 
-func HelloServer(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hello, world")
-}
-
-func GoogleQueryHandler(w http.ResponseWriter, r *http.Request) {
-    query := r.URL.Query().Get("q")
-    query_url := fmt.Sprintf("https://google.com/search?q=%s", query)
-    resp, err := http.Get(query_url)
-    if !CheckResponse(query_url, resp, err, w) {
-        return
-    }
-    defer resp.Body.Close()
-
-    bodyBytes, err := io.ReadAll(resp.Body)
-    if err != nil {
-        log.Println("Body Read Failed: ", err)
-        fmt.Fprintf(w, "Request Failed")
-        return
-    }
-    fmt.Fprintf(w, string(bodyBytes))
-}
-
-
-
-func QdrantCollectionExistsHandler(w http.ResponseWriter, r *http.Request) {
-    collection := r.URL.Query().Get("collection")
-    url := fmt.Sprintf("http://recco-db:6333/collections/%s/exists", collection)
-    resp, err := http.Get(url)
-    if !CheckResponse(url, resp, err, w) {
-        return
-    }
-    defer resp.Body.Close()
-
-    var result QdrantCollectionExistsResponse
-    dec := json.NewDecoder(resp.Body)
-    err = dec.Decode(&result)
-    if err != nil{
-        log.Println(err)
-        fmt.Fprintf(w, "Request Failed")
-        return
-    }
-
-    if !result.Result.Exists {
-        fmt.Fprintf(w, "The collection `%s` does not exist", collection)
-    } else {
-        fmt.Fprintf(w, "The collection `%s` exists", collection)
-    }
-}
-
-func SearchMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (host ReccoHost) SearchMovieHandler(w http.ResponseWriter, r *http.Request) {
+    log.Println("request received")
     q := r.URL.Query().Get("q")
     
     data := map[string]string{"inputs": q}
@@ -127,7 +70,7 @@ func SearchMovieHandler(w http.ResponseWriter, r *http.Request) {
     }
     json_reader := bytes.NewReader(json_data)
 
-    url := fmt.Sprintf("http://recco-embed/embed")
+    url := fmt.Sprintf("http://%s:%s/embed", host.ip, host.embed_port)
     resp, err := http.Post(url, "application/json", json_reader)
     if !CheckResponse(url, resp, err, w) {
         return
@@ -154,7 +97,7 @@ func SearchMovieHandler(w http.ResponseWriter, r *http.Request) {
     }
     json_vec_reader := bytes.NewReader(json_data)
 
-    url = fmt.Sprintf("http://recco-db:6333/collections/movie_titles/points/query")
+    url = fmt.Sprintf("http://%s:%s/collections/movie_titles/points/query", host.ip, host.db_port)
     resp, err = http.Post(url, "application/json", json_vec_reader)
     // Check for errors in the HTTP request
     if !CheckResponse(url, resp, err, w) {
@@ -189,4 +132,27 @@ func SearchMovieHandler(w http.ResponseWriter, r *http.Request) {
         }
         fmt.Fprintf(w, string(titles_data))
     }
+}
+
+func main() {
+	fmt.Println("Starting server")
+
+    host := ReccoHost{
+        ip: os.Getenv("RECCO_IP"),
+        embed_port: os.Getenv("RECCO_EMBED_PORT"),
+        db_port: os.Getenv("RECCO_DB_PORT"),
+    }
+    if host.ip == "" || host.embed_port == "" || host.db_port == "" {
+        log.Println("Environment variables RECCO_IP, RECCO_EMBED_PORT, and RECCO_DB_PORT must be set")
+    } else {
+        log.Println("Host IP:", host.ip)
+
+        http.HandleFunc("/search", host.SearchMovieHandler)
+        listen_err := http.ListenAndServe(":80", nil)
+
+        if listen_err != nil {
+            log.Println("listen err", listen_err)
+        }
+    }
+    fmt.Println("Server stopped")
 }

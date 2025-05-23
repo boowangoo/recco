@@ -60,9 +60,8 @@ func CheckMarshalJson(data []byte, err error, w http.ResponseWriter) bool {
 }
 
 func (host ReccoHost) SearchMovieHandler(w http.ResponseWriter, r *http.Request) {
-    log.Println("request received")
     q := r.URL.Query().Get("q")
-    
+
     data := map[string]string{"inputs": q}
     json_data, err := json.Marshal(data)
     if !CheckMarshalJson(json_data, err, w) {
@@ -143,10 +142,8 @@ func main() {
         db_port: os.Getenv("RECCO_DB_PORT"),
     }
     if host.ip == "" || host.embed_port == "" || host.db_port == "" {
-        log.Println("Environment variables RECCO_IP, RECCO_EMBED_PORT, and RECCO_DB_PORT must be set")
+        log.Println("Environment variables RECCO_IP, RECCO_EMBED_PORT, and RECCO_DB_PORT must be set in the recco.env file.")
     } else {
-        log.Println("Host IP:", host.ip)
-
         http.HandleFunc("/search", host.SearchMovieHandler)
         listen_err := http.ListenAndServe(":80", nil)
 
@@ -154,5 +151,5 @@ func main() {
             log.Println("listen err", listen_err)
         }
     }
-    fmt.Println("Server stopped")
+    log.Println("Server stopped")
 }

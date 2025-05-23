@@ -20,8 +20,8 @@ http {
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
 
-  access_log /recco-lb/logs/access_log.log;
-  error_log /recco-lb/logs/error_log.log;
+  access_log /recco-lb/logs/access.log;
+  error_log /recco-lb/logs/error.log;
 
   # gzip settings.
   gzip on;

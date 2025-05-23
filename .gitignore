@@ -1,5 +1,5 @@
 recco-db/*-data/*-storage/
-recco-db/dataset
 recco-lb/nginx/logs/
 recco-embed/data/*
 recco.env
+dataset/

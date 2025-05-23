@@ -12,7 +12,5 @@ docker compose --env-file ./recco.env up --build -d
 
 # Load dataset into recco-db
 if [[ "$@" == *"--download-db"* ]]; then
-    pushd ./recco-db
     python db_load.py
-    popd
 fi

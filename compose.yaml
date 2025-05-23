@@ -41,7 +41,7 @@ services:
     environment:
       - HOST=${RECCO_IP}
     volumes:
-      # If missing, load data by running start.sh -d
+      # If missing, load data by running start.sh --download-embed
       - ./recco-embed/data:/data
     ports:
       - "${RECCO_EMBED_PORT}:80"
@@ -63,7 +63,7 @@ services:
       - RUN_MODE=development
     volumes:
       - ./recco-db/dev-data/dev-config:/qdrant/config
-      # If missing, get data by runing start.sh -d
+      # If missing, get data by running start.sh --download-db
       - ./recco-db/dev-data/dev-storage:/qdrant/storage
     ports:
       - "${RECCO_DB_PORT}:6333"

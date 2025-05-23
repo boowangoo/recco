@@ -1,11 +1,19 @@
+import os
 import json
 import requests
 import pandas as pd
 from tqdm import tqdm
+from dotenv import dotenv_values
 
+recco_env = dotenv_values("./recco.env")
+
+if "RECCO_IP" not in recco_env or "RECCO_LB_PORT" not in recco_env:
+    raise Exception("RECCO_IP and RECCO_LB_PORT must be set in the recco.env file.")
+
+lb_addr = f"{recco_env['RECCO_IP']}:{recco_env['RECCO_LB_PORT']}"
 headers = {'Content-Type': 'application/json'}
 collection_name = "movie_titles"
-collection_url = f"http://localhost:6333/collections/{collection_name}"
+collection_url = f"http://{lb_addr}/collections/{collection_name}"
 
 
 # Check if the collection already exists
@@ -45,6 +53,7 @@ else:
     print(f"Collection '{collection_name}' created successfully.")
 
 # Load movie titles from the dataset
+# TODO retrieve the dataset from the cloud
 movies_df = pd.read_csv('./dataset/movies_metadata.csv', usecols=['id', 'title'])
 movies = movies_df[["id", "title"]].dropna()
 ids = movies["id"].tolist()
@@ -58,7 +67,7 @@ for i in tqdm(range(0, len(titles), batch_size)):
     batch = titles[i:i+batch_size]
     data = json.dumps({"inputs": batch})
     response = requests.post(
-        'http://localhost:8082/embed',
+        f'http://{lb_addr}/embed',
         data=data,
         headers=headers
     )
@@ -79,7 +88,7 @@ for i in tqdm(range(0, len(titles), batch_size)):
     }
     
     response = requests.put(
-        f"http://localhost:6333/collections/{collection_name}/points",
+        f"http://{lb_addr}/collections/{collection_name}/points",
         json=batch_data,
         headers=headers
     )

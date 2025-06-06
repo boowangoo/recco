@@ -136,10 +136,16 @@ func (host ReccoHost) SearchMovieHandler(w http.ResponseWriter, r *http.Request)
 func main() {
 	fmt.Println("Starting server")
 
+    args := os.Args
+    // Check if command line arguments are provided
+    if len(args) < 4 {
+        fmt.Println("Usage: go run . <RECCO_IP> <RECCO_EMBED_PORT> <RECCO_DB_PORT>")
+        os.Exit(1)
+    }
     host := ReccoHost{
-        ip: os.Getenv("RECCO_IP"),
-        embed_port: os.Getenv("RECCO_EMBED_PORT"),
-        db_port: os.Getenv("RECCO_DB_PORT"),
+        ip: args[1],
+        embed_port: args[2],
+        db_port: args[3],
     }
     if host.ip == "" || host.embed_port == "" || host.db_port == "" {
         log.Println("Environment variables RECCO_IP, RECCO_EMBED_PORT, and RECCO_DB_PORT must be set in the recco.env file.")

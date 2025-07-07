@@ -67,4 +67,18 @@ services:
       - ./recco-db/dev-data/dev-storage:/qdrant/storage
     ports:
       - "${RECCO_DB_PORT}:6333"
-    tty: true 
+    tty: true
+    depends_on:
+      - recco-embed
+
+  recco-db-load:
+    image: recco-db-load
+    build:
+      context: ./recco-db-load/
+      dockerfile: recco-db-load.Dockerfile
+    container_name: recco-db-load
+    environment:
+      - RECCO_DB_HOST=${RECCO_IP}
+      - RECCO_DB_PORT=${RECCO_DB_PORT}
+    depends_on:
+      - recco-db

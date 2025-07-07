@@ -3,17 +3,24 @@ import json
 import requests
 import pandas as pd
 from tqdm import tqdm
-from dotenv import dotenv_values
+# from dotenv import dotenv_values
 
-recco_env = dotenv_values("./recco.env")
+# recco_env = dotenv_values("/app/recco.env")
 
-if "RECCO_IP" not in recco_env or "RECCO_LB_PORT" not in recco_env:
-    raise Exception("RECCO_IP and RECCO_LB_PORT must be set in the recco.env file.")
+# if "RECCO_IP" not in recco_env or "RECCO_LB_PORT" not in recco_env:
+#     raise Exception("RECCO_IP and RECCO_LB_PORT must be set in the recco.env file.")
+RECCO_IP = os.getenv("RECCO_IP")
+RECCO_LB_PORT = os.getenv("RECCO_LB_PORT")
+if not RECCO_IP or not RECCO_LB_PORT:
+    raise Exception("RECCO_IP and RECCO_LB_PORT must be set in the environment variables.")
+# lb_addr = f"{recco_env['RECCO_IP']}:{recco_env['RECCO_LB_PORT']}"
 
-lb_addr = f"{recco_env['RECCO_IP']}:{recco_env['RECCO_LB_PORT']}"
+lb_addr = f"{RECCO_IP}:{RECCO_LB_PORT}"
 headers = {'Content-Type': 'application/json'}
 collection_name = "movie_titles"
 collection_url = f"http://{lb_addr}/collections/{collection_name}"
+
+print(f"lb_addr: {lb_addr}")
 
 
 # Check if the collection already exists
@@ -54,9 +61,9 @@ else:
 
 # Load movie titles from the dataset
 # TODO retrieve the dataset from the cloud
-movies_df = pd.read_csv('./dataset/movies_metadata.csv', usecols=['id', 'title'])
-movies = movies_df[["id", "title"]].dropna()
-ids = movies["id"].tolist()
+movies_df = pd.read_csv('/app/dataset/movies.csv', usecols=['movieId', 'title', 'genres'])
+movies = movies_df[["movieId", "title"]].dropna()
+ids = movies["movieId"].tolist()
 titles = movies["title"].tolist()
 
 print(f"Loading {len(titles)} titles from the dataset:")
@@ -72,7 +79,7 @@ for i in tqdm(range(0, len(titles), batch_size)):
         headers=headers
     )
     if response.status_code != 200:
-        raise Exception(f"Embedding request failed with status code {response.status_code}: {response.json()}")
+        raise Exception(f"Embedding request failed with status code {response.status_code}: {response.json() if response else ''}")
     vectors = response.json()
 
 

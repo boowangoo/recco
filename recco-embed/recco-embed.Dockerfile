@@ -1,9 +1,15 @@
 # Using the Text Embeddings Inference (TEI)
 FROM ghcr.io/huggingface/text-embeddings-inference:1.7
 
-# 109M parameter, 768-dimensional embedding model
+# 335M parameter, 1024-dimensional embedding model
 # Benchmarks available: https://huggingface.co/docs/text-embeddings-inference/
 # BGE models are the most downloaded English models on Hugging Face Hub.
-ENV MODEL_ID="BAAI/bge-large-en-v1.5"
+ENV MODEL_ID="/data/bge-large-en-v1.5"
 
-ENTRYPOINT ["bash", "-c", "text-embeddings-router --model-id \"${MODEL_ID}\""]
+# Location of the embedding model 
+VOLUME /data
+
+ENV HOST=0.0.0.0
+ENV PORT=80
+
+EXPOSE 80

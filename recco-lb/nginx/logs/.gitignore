@@ -1,0 +1,2 @@
+# Prevents committing nginx logs
+!.gitignore

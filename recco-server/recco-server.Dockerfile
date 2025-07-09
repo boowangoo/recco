@@ -6,3 +6,6 @@ EXPOSE 80
 VOLUME /recco-server
 
 WORKDIR /recco-server
+
+# Comment out the entrypoint for development
+ENTRYPOINT [ "/bin/bash", "start.sh" ]

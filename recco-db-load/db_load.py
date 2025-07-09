@@ -3,17 +3,40 @@ import json
 import requests
 import pandas as pd
 from tqdm import tqdm
-from dotenv import dotenv_values
+import re
+import zipfile
+import shutil
+import urllib.request
 
-recco_env = dotenv_values("./recco.env")
+RECCO_IP = os.getenv("RECCO_IP")
+RECCO_LB_PORT = os.getenv("RECCO_LB_PORT")
+if not RECCO_IP or not RECCO_LB_PORT:
+    raise Exception("RECCO_IP and RECCO_LB_PORT must be set in the environment variables.")
 
-if "RECCO_IP" not in recco_env or "RECCO_LB_PORT" not in recco_env:
-    raise Exception("RECCO_IP and RECCO_LB_PORT must be set in the recco.env file.")
-
-lb_addr = f"{recco_env['RECCO_IP']}:{recco_env['RECCO_LB_PORT']}"
+lb_addr = f"{RECCO_IP}:{RECCO_LB_PORT}"
 headers = {'Content-Type': 'application/json'}
 collection_name = "movie_titles"
 collection_url = f"http://{lb_addr}/collections/{collection_name}"
+
+# Download and extract dataset if not present
+dataset_dir = '/app/dataset'
+movies_csv = os.path.join(dataset_dir, 'movies.csv')
+if not os.path.exists(movies_csv):
+    print("movies.csv not found, downloading and extracting dataset...")
+    zip_path = os.path.join(dataset_dir, 'ml-32m.zip')
+    os.makedirs(dataset_dir, exist_ok=True)
+    url = 'https://files.grouplens.org/datasets/movielens/ml-32m.zip'
+    urllib.request.urlretrieve(url, zip_path)
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(dataset_dir)
+    # Find the extracted folder (should be ml-32m/)
+    extracted_dir = os.path.join(dataset_dir, 'ml-32m')
+    if os.path.exists(extracted_dir):
+        for filename in os.listdir(extracted_dir):
+            shutil.move(os.path.join(extracted_dir, filename), dataset_dir)
+        shutil.rmtree(extracted_dir)
+    os.remove(zip_path)
+    print("Dataset downloaded and extracted.")
 
 
 # Check if the collection already exists
@@ -39,11 +62,15 @@ if exists:
         print(f"Collection '{collection_name}' is empty. Loading data:")
 else:
     print(f"Collection '{collection_name}' does not exist. Creating a new one.")
-    # TODO Adjust the vector size automatically according to the recco-embed model
+    
+    vector_size = os.getenv("EMBEDDING_DIM")
+    if not vector_size:
+        raise Exception("EMBEDDING_DIM environment variable must be set.")
+
     payload = {
         "name": collection_name,
         "vectors": {
-            "size": 1024,  # Adjust this size according to your embedding model
+            "size": int(vector_size),
             "distance": "Cosine"
         }
     }
@@ -54,30 +81,35 @@ else:
 
 # Load movie titles from the dataset
 # TODO retrieve the dataset from the cloud
-movies_df = pd.read_csv('./dataset/movies_metadata.csv', usecols=['id', 'title'])
-movies = movies_df[["id", "title"]].dropna()
-ids = movies["id"].tolist()
+movies_df = pd.read_csv('/app/dataset/movies.csv', usecols=['movieId', 'title', 'genres'])
+movies = movies_df[["movieId", "title"]].dropna()
+ids = movies["movieId"].tolist()
 titles = movies["title"].tolist()
+title_year_pattern = re.compile(r"(.+)\s+\((\d{4})\)")
+parsed = [title_year_pattern.match(ty) for ty in titles]
+titles = [m.group(1).strip() if m else title for m, title in zip(parsed, titles)]
+years = [int(m.group(2)) if m else None for m in parsed]
 
 print(f"Loading {len(titles)} titles from the dataset:")
 
 batch_size = 32
 
 for i in tqdm(range(0, len(titles), batch_size)):
-    batch = titles[i:i+batch_size]
-    data = json.dumps({"inputs": batch})
+    batch_titles = titles[i:i+batch_size]
+    batch_years = years[i:i+batch_size]
+    data = json.dumps({"inputs": batch_titles})
     response = requests.post(
         f'http://{lb_addr}/embed',
         data=data,
         headers=headers
     )
     if response.status_code != 200:
-        raise Exception(f"Embedding request failed with status code {response.status_code}: {response.json()}")
+        raise Exception(f"Embedding request failed with status code {response.status_code}: {response.json() if response else ''}")
     vectors = response.json()
 
 
     batch_ids = [int(id) for id in ids[i:i+batch_size]]
-    payloads = [{"title": title} for title in batch]
+    payloads = [{"title": title, "year": year} for title, year in zip(batch_titles, batch_years)]
 
     batch_data = {
         "batch": {

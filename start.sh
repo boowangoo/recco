@@ -2,7 +2,7 @@
 
 # Check if RECCO_IP exists in recco.env
 if [ -f "./recco.env" ] && grep -q "RECCO_IP=" ./recco.env; then
-    echo "Using existing host: $RECCO_IP"
+    echo "Using existing host: $(grep '^RECCO_IP=' ./recco.env | cut -d'=' -f2-)"
 else
     # Find the default network interface from the routing table
     DEFAULT_ITF=$(ip route | awk '/default/ {print $5}')
@@ -16,6 +16,7 @@ else
         echo "No IP address found for interface $DEFAULT_ITF. Please check your network configuration."
         exit 1
     fi
+    echo "" >> ./recco.env
     echo "RECCO_IP=$RECCO_IP" >> ./recco.env
 fi
 

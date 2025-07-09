@@ -1,4 +1,4 @@
 recco-db/*-data/*-storage/
 recco-lb/nginx/logs/
-recco-embed/data/*
-dataset/
+recco-embed/data/
+recco-db-load/dataset/

@@ -4,5 +4,5 @@
 ## Usage
 
 ```
-bash start.sh [OPTIONS]
+bash start.sh
 ```

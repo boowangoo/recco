@@ -16,7 +16,6 @@ else
         echo "No IP address found for interface $DEFAULT_ITF. Please check your network configuration."
         exit 1
     fi
-    echo "" >> ./recco.env
     echo "RECCO_IP=$RECCO_IP" >> ./recco.env
 fi
 

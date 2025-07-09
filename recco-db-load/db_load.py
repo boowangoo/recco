@@ -18,8 +18,6 @@ headers = {'Content-Type': 'application/json'}
 collection_name = "movie_titles"
 collection_url = f"http://{lb_addr}/collections/{collection_name}"
 
-print(f"lb_addr: {lb_addr}")
-
 # Download and extract dataset if not present
 dataset_dir = '/app/dataset'
 movies_csv = os.path.join(dataset_dir, 'movies.csv')

@@ -1,7 +1,7 @@
 import argparse
 from download_dataset import download_dataset
 from preprocess_dataset import preprocess_dataset
-from upload_movie_data import upload_movie_data, upload_rating_conversion
+from upload_movie_data import upload_movie_data, upload_ratings_table
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Load movie data into recco-db.")
@@ -21,5 +21,5 @@ if __name__ == "__main__":
     download_dataset(dataset_dir)
     movies_parquet, ratings_table = preprocess_dataset(dataset_dir, ratings_vector_size)
     upload_movie_data(host, movies_parquet, title_vector_size, ratings_vector_size, batch_size=16)
-    upload_rating_conversion(host, ratings_table)
+    upload_ratings_table(host, ratings_table)
     print("Movie data loaded successfully.")

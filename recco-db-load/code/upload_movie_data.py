@@ -117,7 +117,7 @@ def upload_movie_data(host, movies_parquet, title_vector_size, ratings_vector_si
     
     print(f"Successfully loaded {n_movies} titles into '{collection_name}'.")
 
-def upload_rating_conversion(host, ratings_table):
+def upload_ratings_table(host, ratings_table):
     collection_url = f"{host}/collections"
     collection_name = "ratings"
 

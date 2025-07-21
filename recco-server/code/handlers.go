@@ -199,7 +199,9 @@ func (host ReccoHost) RecommendMovieHandler(w http.ResponseWriter, r *http.Reque
         }
     }
 
-    positive = normalizeVector(positive)
+    if !isZeroVector(positive) {
+        positive = normalizeVector(positive)
+    }
     if !isZeroVector(negative) {
         negative = normalizeVector(negative)
     }

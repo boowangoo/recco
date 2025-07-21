@@ -87,7 +87,8 @@ services:
     environment:
       - RECCO_IP=${RECCO_IP}
       - RECCO_LB_PORT=${RECCO_LB_PORT}
-      - EMBEDDING_DIM=${EMBEDDING_DIM}
+      - MOVIE_TITLES_EMBEDDING_DIM=${MOVIE_TITLES_EMBEDDING_DIM}
+      - MOVIE_RATINGS_EMBEDDING_DIM=${MOVIE_RATINGS_EMBEDDING_DIM}
     volumes:
       - ./recco-db-load/dataset:/app/dataset
     depends_on:

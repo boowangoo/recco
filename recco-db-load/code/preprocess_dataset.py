@@ -27,6 +27,10 @@ def movie_features(ratings_data, k):
     return Vt.T
 
 def preprocess_dataset(data_dir, ratings_vector_size):
+    preprocessed_data = os.path.join(data_dir, "movies.parquet")
+    if os.path.exists(preprocessed_data):
+        print(f"Preprocessed dataset already exists at {preprocessed_data}")
+        return preprocessed_data, None
     print("Preprocessing dataset")
     # Load and sort the data
     movies_data = pd.read_csv(os.path.join(data_dir, "movies.csv"), usecols=["movieId", "title", "genres"])
@@ -65,7 +69,6 @@ def preprocess_dataset(data_dir, ratings_vector_size):
     movies_features = movie_features(ratings_data, k=ratings_vector_size)
     movies_data["features"] = [movies_features[i] for i in range(len(movies_data))]
     # Save the processed data to parquet files
-    preprocessed_data = os.path.join(data_dir, "movies.parquet")
     movies_data.to_parquet(preprocessed_data)
     print(f"Finished preprocessing dataset to {preprocessed_data}")
 

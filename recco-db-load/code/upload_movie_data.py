@@ -121,13 +121,7 @@ def upload_ratings_table(host, ratings_table):
     collection_url = f"{host}/collections"
     collection_name = "ratings"
 
-    vector_conf = { "size": len(ratings_table["original"]), "distance": "Cosine" }
-    vectors_config = {
-        "original": vector_conf,
-        "refit": vector_conf
-    }
-
-    if not create_collection(collection_url, collection_name, vectors_config):
+    if not create_collection(collection_url, collection_name, {}):
         print(f"Collection '{collection_name}' is already populated.")
         return
 
@@ -136,7 +130,8 @@ def upload_ratings_table(host, ratings_table):
         json={
             "points": [{
                 "id": 0,
-                "vector": ratings_table
+                "vector": {},
+                "payload": ratings_table
             }]
         },
         headers=JSON_HEADER

@@ -12,22 +12,6 @@ type QdrantCollectionExistsResponse struct {
     }
 }
 
-type QdrantMoviesPayload struct {
-    Title string `json:"title"`
-    Genres []string `json:"genres"`
-    Year int `json:"year"`
-    AverageRating float32 `json:"average_rating"`
-}
-
-type QdrantTitlesQueryResponse struct {
-    Result struct {
-        Points []struct {
-            Id int `json:"id"`
-            Payload QdrantMoviesPayload `json:"payload"`
-        } `json:"points"`
-    } `json:"result"`
-}
-
 type QdrantTitlesQueryRequest struct {
     Query []float32 `json:"query"`
     Using string `json:"using"`
@@ -35,7 +19,25 @@ type QdrantTitlesQueryRequest struct {
     WithPayload bool `json:"with_payload"`
 }
 
-type RecommendRequest struct {
+type QdrantMoviesPayload struct {
+    Title string `json:"title"`
+    Genres []string `json:"genres"`
+    Year int `json:"year"`
+    AverageRating float32 `json:"average_rating"`
+}
+
+type QdrantMoviesInfo struct {
+	Id int `json:"id"`
+	Payload QdrantMoviesPayload `json:"payload"`
+}
+
+type QdrantTitlesQueryResponse struct {
+    Result struct {
+        Points []QdrantMoviesInfo `json:"points"`
+    } `json:"result"`
+}
+
+type QdrantRatingsRequest struct {
     Ids     []int `json:"ids"`
     Ratings []int `json:"ratings"`
 }
@@ -70,8 +72,17 @@ type QdrantRecommendQuery struct {
             Negative [][]float32 `json:"negative,omitempty"`
         } `json:"recommend"`
     } `json:"query"`
+    Filter      *QdrantIdExclusionFilter `json:"filter"`
     Using       string `json:"using"`
     Limit       int    `json:"limit"`
     WithVector  bool   `json:"with_vector"`
     WithPayload bool   `json:"with_payload"`
+}
+
+type QdrantIdExclusionFilter struct {
+    MustNot []QdrantIdExclusionCondition `json:"must_not"`
+}
+
+type QdrantIdExclusionCondition struct {
+    HasId []int `json:"has_id"`
 }

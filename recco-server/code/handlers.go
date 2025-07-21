@@ -69,12 +69,9 @@ func (host ReccoHost) SearchMovieHandler(w http.ResponseWriter, r *http.Request)
         fmt.Fprintf(w, "Search failed.")
     } else {
         n := len(result.Result.Points)
-        payloads := make([]QdrantMoviesPayload, 0, n)
+        payloads := make([]QdrantMoviesInfo, 0, n)
         for _, point := range result.Result.Points {
-            if point.Payload.Title == "" {
-                continue
-            }
-            payloads = append(payloads, point.Payload)
+            payloads = append(payloads, point)
         }
         payloads_data, err := json.Marshal(payloads)
         if !CheckMarshalJson(payloads_data, err, w) {
@@ -85,7 +82,7 @@ func (host ReccoHost) SearchMovieHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (host ReccoHost) RecommendMovieHandler(w http.ResponseWriter, r *http.Request) {
-    var req RecommendRequest
+    var req QdrantRatingsRequest
     err := json.NewDecoder(r.Body).Decode(&req)
     if err != nil {
         log.Println("Error parsing request body:", err)
@@ -221,6 +218,13 @@ func (host ReccoHost) RecommendMovieHandler(w http.ResponseWriter, r *http.Reque
     }
     if !isZeroVector(negative) {
         recommendQuery.Query.Recommend.Negative = [][]float32{negative}
+    }
+
+    // Exclude input movie IDs from recommendations
+    recommendQuery.Filter = &QdrantIdExclusionFilter{
+        MustNot: []QdrantIdExclusionCondition{
+            {HasId: req.Ids},
+        },
     }
 
     recommendQuery.Using = "features"

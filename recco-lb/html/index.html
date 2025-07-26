@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recco: Movie Search & Recommendations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-section {
+            margin-bottom: 40px;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .movie-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .movie-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .movie-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .movie-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .movie-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .movie-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .movie-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .movie-year {
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .movie-rating {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .movie-genres {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .watched-item {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+        }
+
+        .rating-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .rating-select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .rating-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .recommend-button {
+            width: 100%;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .recommend-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.3);
+        }
+
+        .recommend-button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .movie-details {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-button {
+                position: static;
+                transform: none;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .search-input {
+                padding-right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Recco: Movie Search & Recommendations</h1>
+        
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for movies">
+                <button id="searchButton" class="search-button">Search</button>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Search Results</h2>
+                <div id="searchResults" class="movie-list">
+                </div>
+                <div id="searchLoading" class="loading">
+                    <div class="spinner"></div>
+                    Searching movies...
+                </div>
+            </div>
+        </div>
+
+        <!-- Watched List Section -->
+        <div class="section">
+            <h2 class="section-title">Watched Movies</h2>
+            <div id="watchedList" class="movie-list">
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div class="section">
+            <button id="recommendButton" class="recommend-button" disabled>
+                Get Recommendations
+            </button>
+            
+            <h2 class="section-title">Recommendations</h2>
+            <div id="recommendationsList" class="movie-list">
+            </div>
+            <div id="recommendLoading" class="loading">
+                <div class="spinner"></div>
+                Getting recommendations...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MovieApp {
+            constructor() {
+                this.apiBase = `${location.protocol}//${location.hostname}:${location.port ? location.port : 80}`;
+                this.watchedMovies = [];
+                this.ratingScale = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                const searchInput = document.getElementById('searchInput');
+                const searchButton = document.getElementById('searchButton');
+                const recommendButton = document.getElementById('recommendButton');
+
+                searchButton.addEventListener('click', () => this.searchMovies());
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.searchMovies();
+                    }
+                });
+                recommendButton.addEventListener('click', () => this.getRecommendations());
+            }
+
+            async searchMovies() {
+                const query = document.getElementById('searchInput').value.trim();
+                if (!query) return;
+
+                const searchResults = document.getElementById('searchResults');
+                const searchLoading = document.getElementById('searchLoading');
+
+                searchLoading.style.display = 'block';
+                searchResults.innerHTML = '';
+
+                try {
+                    const response = await fetch(`${this.apiBase}/search?q=${encodeURIComponent(query)}`);
+                    if (!response.ok) throw new Error('Search failed');
+                    
+                    const movies = await response.json();
+                    this.displaySearchResults(movies);
+                } catch (error) {
+                    this.showError('searchResults', 'Failed to search movies. Please try again.');
+                } finally {
+                    searchLoading.style.display = 'none';
+                }
+            }
+
+            displaySearchResults(movies) {
+                const searchResults = document.getElementById('searchResults');
+                
+                if (movies.length === 0) {
+                    searchResults.innerHTML = '';
+                    return;
+                }
+
+                searchResults.innerHTML = movies.map(movie => `
+                    <div class="movie-item" onclick="movieApp.addToWatched(${movie.id}, '${movie.payload.title.replace(/'/g, "\\'")}', ${movie.payload.year}, ${movie.payload.average_rating}, '${movie.payload.genres.join(', ')}')">
+                        <div class="movie-title">${movie.payload.title}</div>
+                        <div class="movie-details">
+                            <div class="movie-info">
+                                <span class="movie-year">${movie.payload.year}</span>
+                                <span class="movie-rating">★ ${movie.payload.average_rating.toFixed(1)}</span>
+                            </div>
+                        </div>
+                        <div class="movie-genres">${movie.payload.genres.join(', ')}</div>
+                    </div>
+                `).join('');
+            }
+
+            addToWatched(id, title, year, rating, genres) {
+                // Check if movie is already in watched list
+                if (this.watchedMovies.find(movie => movie.id === id)) {
+                    return;
+                }
+
+                const movie = {
+                    id,
+                    title,
+                    year,
+                    rating,
+                    genres,
+                    userRating: null
+                };
+
+                this.watchedMovies.push(movie);
+                this.updateWatchedList();
+                this.updateRecommendButton();
+                this.clearSearch();
+            }
+
+            clearSearch() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            }
+
+            updateWatchedList() {
+                const watchedList = document.getElementById('watchedList');
+                
+                if (this.watchedMovies.length === 0) {
+                    watchedList.innerHTML = '';
+                    return;
+                }
+
+                watchedList.innerHTML = this.watchedMovies.map((movie, index) => `
+                    <div class="movie-item watched-item">
+                        <div class="movie-title">${movie.title}</div>
+                        <div class="movie-details">
+                            <div class="movie-info">
+                                <span class="movie-year">${movie.year}</span>
+                                <span class="movie-rating">★ ${movie.rating.toFixed(1)}</span>
+                            </div>
+                        </div>
+                        <div class="movie-genres">${movie.genres}</div>
+                        <div class="rating-container">
+                            <label for="rating-${index}">Your Rating:</label>
+                            <select id="rating-${index}" class="rating-select" onchange="movieApp.updateMovieRating(${index}, this.value)">
+                                <option value="">Select rating</option>
+                                ${this.ratingScale.map((rating, ratingIndex) => `
+                                    <option value="${ratingIndex}" ${movie.userRating === ratingIndex ? 'selected' : ''}>
+                                        ${rating} ⭐
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateMovieRating(movieIndex, ratingIndex) {
+                if (ratingIndex === '') {
+                    this.watchedMovies[movieIndex].userRating = null;
+                } else {
+                    this.watchedMovies[movieIndex].userRating = parseInt(ratingIndex);
+                }
+                this.updateRecommendButton();
+            }
+
+            updateRecommendButton() {
+                const recommendButton = document.getElementById('recommendButton');
+                const ratedMovies = this.watchedMovies.filter(movie => movie.userRating !== null);
+                
+                recommendButton.disabled = ratedMovies.length === 0;
+                recommendButton.textContent = ratedMovies.length === 0 
+                    ? 'Rate some movies to get recommendations' 
+                    : `Get Recommendations (${ratedMovies.length} rated movies)`;
+            }
+
+            async getRecommendations() {
+                const ratedMovies = this.watchedMovies.filter(movie => movie.userRating !== null);
+                if (ratedMovies.length === 0) return;
+
+                const recommendationsList = document.getElementById('recommendationsList');
+                const recommendLoading = document.getElementById('recommendLoading');
+
+                recommendLoading.style.display = 'block';
+                recommendationsList.innerHTML = '';
+
+                try {
+                    const requestData = {
+                        ids: ratedMovies.map(movie => movie.id),
+                        ratings: ratedMovies.map(movie => movie.userRating)
+                    };
+
+                    const response = await fetch(`${this.apiBase}/recommend`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    if (!response.ok) throw new Error('Recommendation failed');
+                    
+                    const recommendations = await response.json();
+                    this.displayRecommendations(recommendations);
+                } catch (error) {
+                    this.showError('recommendationsList', 'Failed to get recommendations. Please try again.');
+                } finally {
+                    recommendLoading.style.display = 'none';
+                }
+            }
+
+            displayRecommendations(recommendations) {
+                const recommendationsList = document.getElementById('recommendationsList');
+                
+                if (recommendations.length === 0) {
+                    recommendationsList.innerHTML = '';
+                    return;
+                }
+
+                recommendationsList.innerHTML = recommendations.map(movie => `
+                    <div class="movie-item">
+                        <div class="movie-title">${movie.title}</div>
+                        <div class="movie-details">
+                            <div class="movie-info">
+                                <span class="movie-year">${movie.year}</span>
+                                <span class="movie-rating">★ ${movie.average_rating.toFixed(1)}</span>
+                            </div>
+                        </div>
+                        <div class="movie-genres">${movie.genres.join(', ')}</div>
+                    </div>
+                `).join('');
+            }
+
+            showError(containerId, message) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error:</strong> ${message}
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize the app
+        const movieApp = new MovieApp();
+    </script>
+</body>
+</html>
+

@@ -212,10 +212,8 @@ func (host ReccoHost) RecommendMovieHandler(w http.ResponseWriter, r *http.Reque
         Positive [][]float32 `json:"positive,omitempty"`
         Negative [][]float32 `json:"negative,omitempty"`
     }{}
-    
-    if !isZeroVector(positive) {
-        recommendQuery.Query.Recommend.Positive = [][]float32{positive}
-    }
+
+    recommendQuery.Query.Recommend.Positive = [][]float32{positive}
     if !isZeroVector(negative) {
         recommendQuery.Query.Recommend.Negative = [][]float32{negative}
     }
